@@ -4,10 +4,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class BudgetDto {
@@ -17,6 +19,4 @@ public class BudgetDto {
     private Double totalBudget;
     private LocalDate startDate;
     private LocalDate endDate;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 }

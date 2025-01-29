@@ -40,6 +40,9 @@ public class Budget {
 
     @Column(nullable = false)
     private Double totalBudget;
+    
+    @Column(nullable = false)
+    private Double softLimitPercentage = 80.0; // Default 80%
 
     @Column(nullable = false)
     private LocalDate startDate;

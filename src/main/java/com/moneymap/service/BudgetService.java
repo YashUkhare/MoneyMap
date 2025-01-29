@@ -3,39 +3,63 @@ package com.moneymap.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.moneymap.customException.ResourceNotFoundException;
 import com.moneymap.dto.BudgetDto;
 import com.moneymap.entity.Budget;
 import com.moneymap.entity.ExpenseCategory;
 import com.moneymap.entity.User;
 import com.moneymap.repository.BudgetRepository;
+import com.moneymap.repository.ExpenseCategoryRepository;
+import com.moneymap.repository.UserRepository;
 
-import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 @Service
-@Transactional
+@RequiredArgsConstructor
 public class BudgetService {
-    @Autowired
-    private BudgetRepository budgetRepository;
 
-    public void createBudget(BudgetDto budgetDTO) {
+    private final BudgetRepository budgetRepository;
+    private final UserRepository userRepository;
+    private final ExpenseCategoryRepository categoryRepository;
+
+    public List<BudgetDto> getUserBudgets(Long userId) {
+        return budgetRepository.findByUserUserId(userId)
+            .stream()
+            .map(this::convertToDTO)
+            .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public BudgetDto setBudget(BudgetDto budgetDTO) {
+        User user = userRepository.findById(budgetDTO.getUserId())
+            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        ExpenseCategory category = categoryRepository.findById(budgetDTO.getCategoryId())
+            .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+
         Budget budget = Budget.builder()
-            .user(User.builder().userId(budgetDTO.getUserId()).build())
-            .category(ExpenseCategory.builder().categoryId(budgetDTO.getCategoryId()).build())
+            .user(user)
+            .category(category)
             .totalBudget(budgetDTO.getTotalBudget())
             .startDate(budgetDTO.getStartDate())
             .endDate(budgetDTO.getEndDate())
-            .createdAt(java.time.LocalDateTime.now())
-            .updatedAt(java.time.LocalDateTime.now())
             .build();
-        budgetRepository.save(budget);
+
+        Budget savedBudget = budgetRepository.save(budget);
+        return convertToDTO(savedBudget);
     }
 
-    public List<Budget> getUserBudgets(Long userId) {
-        return budgetRepository.findAll().stream()
-            .filter(budget -> budget.getUser().getUserId().equals(userId))
-            .collect(Collectors.toList());
+    private BudgetDto convertToDTO(Budget budget) {
+        return BudgetDto.builder()
+            .budgetId(budget.getBudgetId())
+            .userId(budget.getUser().getUserId())
+            .categoryId(budget.getCategory().getCategoryId())
+            .totalBudget(budget.getTotalBudget())
+            .startDate(budget.getStartDate())
+            .endDate(budget.getEndDate())
+            .build();
     }
 }

@@ -2,7 +2,6 @@ package com.moneymap.controller;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,23 +11,24 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.moneymap.dto.BudgetDto;
-import com.moneymap.entity.Budget;
 import com.moneymap.service.BudgetService;
 
-@RestController
-@RequestMapping("/budgets")
-public class BudgetController {
-    @Autowired
-    private BudgetService budgetService;
+import lombok.RequiredArgsConstructor;
 
-    @PostMapping
-    public ResponseEntity<String> createBudget(@RequestBody BudgetDto budgetDTO) {
-        budgetService.createBudget(budgetDTO);
-        return ResponseEntity.ok("Budget created successfully");
+@RestController
+@RequestMapping("/api/budget")
+@RequiredArgsConstructor
+public class BudgetController {
+
+    private final BudgetService budgetService;
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<List<BudgetDto>> getUserBudgets(@PathVariable Long userId) {
+        return ResponseEntity.ok(budgetService.getUserBudgets(userId));
     }
 
-    @GetMapping("/user/{userId}")
-    public List<Budget> getUserBudgets(@PathVariable Long userId) {
-        return budgetService.getUserBudgets(userId);
+    @PostMapping
+    public ResponseEntity<BudgetDto> setBudget(@RequestBody BudgetDto budgetDTO) {
+        return ResponseEntity.ok(budgetService.setBudget(budgetDTO));
     }
 }
